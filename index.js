@@ -2,6 +2,7 @@ const express = require("express");
 const axios = require("axios");
 
 const app = express();
+
 app.use(express.json());
 
 const ID_INSTANCE = process.env.ID_INSTANCE;
@@ -15,14 +16,10 @@ app.post("/", async (req, res) => {
   try {
     console.log("WEBHOOK:", JSON.stringify(req.body));
 
-    const sender = req.body.senderData?.chatId;
+    const sender = req.body.senderData.chatId;
 
     const message =
       req.body.messageData?.textMessageData?.textMessage || "";
-
-    if (!sender) {
-      return res.sendStatus(200);
-    }
 
     let reply = "Perintah tidak dikenal";
 
@@ -31,24 +28,18 @@ app.post("/", async (req, res) => {
         "📦 LIST PRODUK JAKHIS STORE\n\n" +
         "1. Panel Pterodactyl\n" +
         "2. VPS Digital Ocean\n" +
-        "3. Bot WhatsApp\n" +
-        "4. Script Bot\n\n" +
-        "Ketik *admin* untuk hubungi admin.";
+        "3. Bot WhatsApp";
     }
 
-    if (message.toLowerCase() === "admin") {
-      reply = "👤 Admin Jakhis Store\n📞 081287192976";
-    }
+    const url =
+      `https://7107.api.green-api.com/waInstance${ID_INSTANCE}/sendMessage/${API_TOKEN}`;
 
-    const response = await axios.post(
-      `https://7107.api.greenapi.com/waInstance${ID_INSTANCE}/sendMessage/${API_TOKEN}`,
-      {
-        chatId: sender,
-        message: reply,
-      }
-    );
+    const response = await axios.post(url, {
+      chatId: sender,
+      message: reply,
+    });
 
-    console.log("Pesan terkirim:", response.data);
+    console.log("TERKIRIM:", response.data);
 
     res.sendStatus(200);
   } catch (err) {
