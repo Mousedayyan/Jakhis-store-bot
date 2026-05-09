@@ -15,10 +15,10 @@ app.post("/", async (req, res) => {
   try {
     console.log("WEBHOOK:", JSON.stringify(req.body));
 
+    const sender = req.body.senderData?.chatId;
+
     const message =
       req.body.messageData?.textMessageData?.textMessage || "";
-
-    const sender = req.body.senderData?.chatId;
 
     if (!sender) {
       return res.sendStatus(200);
@@ -28,10 +28,19 @@ app.post("/", async (req, res) => {
 
     if (message.toLowerCase() === "produk") {
       reply =
-        "📦 LIST PRODUK JAKHIS STORE\n\n1. Panel Pterodactyl\n2. VPS Digital Ocean\n3. Bot WhatsApp";
+        "📦 LIST PRODUK JAKHIS STORE\n\n" +
+        "1. Panel Pterodactyl\n" +
+        "2. VPS Digital Ocean\n" +
+        "3. Bot WhatsApp\n" +
+        "4. Script Bot\n\n" +
+        "Ketik *admin* untuk hubungi admin.";
     }
 
-    await axios.post(
+    if (message.toLowerCase() === "admin") {
+      reply = "👤 Admin Jakhis Store\n📞 081287192976";
+    }
+
+    const response = await axios.post(
       `https://7107.api.greenapi.com/waInstance${ID_INSTANCE}/sendMessage/${API_TOKEN}`,
       {
         chatId: sender,
@@ -39,7 +48,8 @@ app.post("/", async (req, res) => {
       }
     );
 
-    console.log("Pesan terkirim");
+    console.log("Pesan terkirim:", response.data);
+
     res.sendStatus(200);
   } catch (err) {
     console.log("ERROR:", err.response?.data || err.message);
@@ -48,6 +58,7 @@ app.post("/", async (req, res) => {
 });
 
 const PORT = process.env.PORT || 8080;
+
 app.listen(PORT, () => {
   console.log("Bot jalan di port", PORT);
 });
