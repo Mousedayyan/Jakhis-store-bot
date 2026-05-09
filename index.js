@@ -11,22 +11,34 @@ async function sendMessage(chatId, text) {
   await axios.post(
     `https://api.green-api.com/waInstance${ID_INSTANCE}/sendMessage/${API_TOKEN}`,
     {
-      chatId,
+      chatId: chatId,
       message: text
     }
   );
 }
 
+app.get("/", (req, res) => {
+  res.send("Jakhis Store Bot aktif");
+});
+
 app.post("/", async (req, res) => {
   try {
-    const body = req.body;
+    console.log("WEBHOOK MASUK:", JSON.stringify(req.body));
 
-    const msg =
-      body.messageData?.textMessageData?.textMessage?.toLowerCase();
+    const body = req.body;
 
     const chatId = body.senderData?.chatId;
 
-    if (!msg || !chatId) {
+    const msg =
+      body.messageData?.textMessageData?.textMessage?.toLowerCase() ||
+      body.messageData?.extendedTextMessageData?.text?.toLowerCase() ||
+      body.messageData?.quotedMessage?.textMessage?.toLowerCase() ||
+      "";
+
+    console.log("CHAT ID:", chatId);
+    console.log("PESAN:", msg);
+
+    if (!chatId || !msg) {
       return res.sendStatus(200);
     }
 
@@ -48,9 +60,7 @@ app.post("/", async (req, res) => {
 
 Ketik ORDER untuk pesan.`
       );
-    }
-
-    if (msg.includes("order")) {
+    } else if (msg.includes("order")) {
       await sendMessage(
         chatId,
 `Format Order 🛒
@@ -61,9 +71,7 @@ Durasi:
 Jumlah:
 Metode pembayaran:`
       );
-    }
-
-    if (msg.includes("bayar")) {
+    } else if (msg.includes("bayar")) {
       await sendMessage(
         chatId,
 `Metode Pembayaran 💳
@@ -75,21 +83,37 @@ Bank:
 
 Kirim bukti transfer ya kak.`
       );
+    } else if (msg.includes("admin")) {
+      await sendMessage(
+        chatId,
+`Halo kak 👋
+Admin akan segera bantu.
+
+Silakan tulis kendalanya dengan jelas ya.`
+      );
+    } else {
+      await sendMessage(
+        chatId,
+`Halo kak 👋
+Selamat datang di Jakhis Store.
+
+Ketik:
+PRODUK - lihat daftar produk
+ORDER - format order
+BAYAR - metode pembayaran
+ADMIN - bantuan admin`
+      );
     }
 
     res.sendStatus(200);
   } catch (err) {
-    console.log(err.message);
+    console.log("ERROR:", err.response?.data || err.message);
     res.sendStatus(200);
   }
-});
-
-app.get("/", (req, res) => {
-  res.send("Jakhis Store Bot aktif");
 });
 
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log("Bot jalan");
+  console.log("Bot jalan di port " + PORT);
 });
